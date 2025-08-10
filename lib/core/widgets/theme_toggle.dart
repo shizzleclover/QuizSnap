@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/theme_persistence.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Theme toggle button that switches between light and dark modes.
 /// Uses Riverpod for state management across the app.
@@ -60,26 +60,31 @@ final themeProvider = StateNotifierProvider<ThemeNotifier, bool>((ref) {
 
 /// Theme notifier that manages light/dark mode state with persistence
 class ThemeNotifier extends StateNotifier<bool> {
+  static const String _themeKey = 'theme_mode';
+  
   ThemeNotifier() : super(false) {
     _loadTheme();
   }
 
   /// Load saved theme preference
   Future<void> _loadTheme() async {
-    final isDarkMode = await ThemePersistence.loadThemeMode();
+    final prefs = await SharedPreferences.getInstance();
+    final isDarkMode = prefs.getBool(_themeKey) ?? false;
     state = isDarkMode;
   }
 
   /// Toggle between light and dark themes
   Future<void> toggleTheme() async {
     state = !state;
-    await ThemePersistence.saveThemeMode(state);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_themeKey, state);
   }
 
   /// Set specific theme mode
   Future<void> setTheme(bool isDark) async {
     state = isDark;
-    await ThemePersistence.saveThemeMode(isDark);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_themeKey, isDark);
   }
 
   /// Get current theme mode
