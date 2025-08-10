@@ -1,3 +1,3 @@
-class AppText{
-    
+class AppText {
+  static const String appName = 'QuizSnap';
 }
