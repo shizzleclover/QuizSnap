@@ -1,1 +1,58 @@
-a
+{
+    "color": {
+      "background": "rgb(250, 250, 250)",
+      "foreground": "rgb(82, 82, 82)",
+      "card": "rgb(255, 255, 255)",
+      "cardForeground": "rgb(82, 82, 82)",
+      "popover": "rgb(255, 255, 255)",
+      "popoverForeground": "rgb(82, 82, 82)",
+      "primary": "rgb(104, 85, 230)",
+      "primaryForeground": "rgb(255, 255, 255)",
+      "secondary": "rgb(187, 198, 239)",
+      "secondaryForeground": "rgb(82, 82, 82)",
+      "muted": "rgb(208, 210, 204)",
+      "mutedForeground": "rgb(137, 137, 137)",
+      "accent": "rgb(169, 184, 157)",
+      "accentForeground": "rgb(255, 255, 255)",
+      "destructive": "rgb(199, 83, 60)",
+      "destructiveForeground": "rgb(255, 255, 255)",
+      "border": "rgb(222, 222, 222)",
+      "input": "rgb(222, 222, 222)",
+      "ring": "rgb(104, 85, 230)",
+      "chart1": "rgb(104, 85, 230)",
+      "chart2": "rgb(115, 88, 229)",
+      "chart3": "rgb(82, 66, 179)",
+      "chart4": "rgb(154, 137, 234)",
+      "chart5": "rgb(133, 147, 210)",
+      "sidebar": "rgb(250, 250, 250)",
+      "sidebarForeground": "rgb(82, 82, 82)",
+      "sidebarPrimary": "rgb(104, 85, 230)",
+      "sidebarPrimaryForeground": "rgb(255, 255, 255)",
+      "sidebarAccent": "rgb(169, 184, 157)",
+      "sidebarAccentForeground": "rgb(255, 255, 255)",
+      "sidebarBorder": "rgb(222, 222, 222)",
+      "sidebarRing": "rgb(104, 85, 230)"
+    },
+    "font": {
+      "sans": "Montserrat, sans-serif",
+      "serif": "Playfair Display, serif",
+      "mono": "Source Code Pro, monospace"
+    },
+    "radius": {
+      "sm": "4px",
+      "md": "6px",
+      "lg": "8px",
+      "xl": "12px"
+    },
+    "shadow": {
+      "2xs": "0px 5px 10px -2px rgba(0,0,0,0.05)",
+      "xs": "0px 5px 10px -2px rgba(0,0,0,0.05)",
+      "sm": "0px 5px 10px -2px rgba(0,0,0,0.10), 0px 1px 2px -3px rgba(0,0,0,0.10)",
+      "base": "0px 5px 10px -2px rgba(0,0,0,0.10), 0px 1px 2px -3px rgba(0,0,0,0.10)",
+      "md": "0px 5px 10px -2px rgba(0,0,0,0.10), 0px 2px 4px -3px rgba(0,0,0,0.10)",
+      "lg": "0px 5px 10px -2px rgba(0,0,0,0.10), 0px 4px 6px -3px rgba(0,0,0,0.10)",
+      "xl": "0px 5px 10px -2px rgba(0,0,0,0.10), 0px 8px 10px -3px rgba(0,0,0,0.10)",
+      "2xl": "0px 5px 10px -2px rgba(0,0,0,0.25)"
+    }
+  }
+  
