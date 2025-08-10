@@ -4,16 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/Routes/app_router.dart';
 import 'core/Routes/routes.dart';
 import 'core/theme/theme.dart';
-import 'core/services/supabase_service.dart';
+import 'core/services/api_service.dart';
 import 'core/widgets/theme_toggle.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-/// App bootstrap: loads .env, initializes Supabase, parses design tokens,
+/// App bootstrap: loads .env, initializes API service, parses design tokens,
 /// builds the theme, then runs the app.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: '.env');
-  await SupabaseService.init();
+  ApiService.init();
   final tokens = await ThemeLoader.loadTokens('design.json');
   runApp(ProviderScope(child: MainApp(tokens: tokens)));
 }
