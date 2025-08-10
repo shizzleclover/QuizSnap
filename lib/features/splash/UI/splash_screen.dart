@@ -3,6 +3,9 @@ import 'package:quizsnap/core/widgets/index.dart';
 import 'package:quizsnap/core/constants/colors.dart';
 import 'package:quizsnap/core/Routes/routes.dart';
 
+//!Refurbish splashscreen, created branch @7:40 pm
+//TODO: rember to refurbish splashscreen and delete branch after 
+
 /// Splash screen is the app entry view. It is referenced by `AppRoutes.splash`
 /// and should perform lightweight startup work (branding, preloading, nav).
 class SplashScreen extends StatefulWidget {
