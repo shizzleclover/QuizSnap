@@ -189,7 +189,7 @@ class ThemeLoader {
   }
 
   static Color _parseRgbColor(String rgb) {
-    // Expecting formats like 'rgb(r, g, b)'
+    
     final cleaned = rgb.replaceAll(RegExp(r'[^0-9,]'), '');
     final parts = cleaned.split(',').map((e) => int.parse(e.trim())).toList();
     return Color.fromARGB(255, parts[0], parts[1], parts[2]);

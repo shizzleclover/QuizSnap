@@ -15,4 +15,5 @@ class AppRoutes {
   static const String multiplayerLobby = "/multiplayer/lobby";
   static const String multiplayerQuiz = "/multiplayer/quiz";
   static const String profile = "/profile";
+  static const String profileSetup = "/profile/setup";
 }

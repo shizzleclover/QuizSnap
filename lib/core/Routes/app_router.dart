@@ -11,6 +11,7 @@ import 'package:quizsnap/features/solo_quiz/UI/solo_quiz_screen.dart';
 import 'package:quizsnap/features/multiplayer/UI/lobby_screen.dart';
 import 'package:quizsnap/features/multiplayer/UI/quiz_screen.dart';
 import 'package:quizsnap/features/profile/UI/profile_screen.dart';
+import 'package:quizsnap/features/profile/UI/profile_setup_screen.dart';
 import '../navigation/smooth_page_route.dart';
 import 'routes.dart';
 
@@ -70,6 +71,9 @@ class AppRouter {
         break;
       case AppRoutes.profile:
         screen = const ProfileScreen();
+        break;
+      case AppRoutes.profileSetup:
+        screen = const ProfileSetupScreen();
         break;
       default:
         screen = const Scaffold(body: Center(child: Text('404 - Not Found')));

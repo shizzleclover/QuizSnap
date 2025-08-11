@@ -62,14 +62,16 @@ final themeProvider = StateNotifierProvider<ThemeNotifier, bool>((ref) {
 class ThemeNotifier extends StateNotifier<bool> {
   static const String _themeKey = 'theme_mode';
   
-  ThemeNotifier() : super(false) {
+  // Default to dark mode to avoid light-mode flash on startup
+  ThemeNotifier() : super(true) {
     _loadTheme();
   }
 
   /// Load saved theme preference
   Future<void> _loadTheme() async {
     final prefs = await SharedPreferences.getInstance();
-    final isDarkMode = prefs.getBool(_themeKey) ?? false;
+    // Default to dark when not previously set
+    final isDarkMode = prefs.getBool(_themeKey) ?? true;
     state = isDarkMode;
   }
 

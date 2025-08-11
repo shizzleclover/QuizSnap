@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/widgets/index.dart';
+// import 'package:quizsnap/core/widgets/index.dart';
 import 'package:quizsnap/core/Routes/routes.dart';
 
-/// Onboarding explains value props and leads users into auth.
-/// Referenced by `AppRoutes.onboarding`.
+/// Onboarding screen redesigned to match the provided dark walkthrough.
+/// - Top: large illustration area (placeholder containers, clearly labeled)
+/// - Middle: big, high-contrast copy
+/// - Bottom: page indicators and two CTA buttons
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -13,132 +15,142 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
-  int _currentPage = 0;
+  int _current = 0;
 
-  final List<OnboardingPage> _pages = [
-    OnboardingPage(
-      title: 'Upload Documents',
-      description: 'Upload PDFs, Word docs, or images and let AI do the heavy lifting',
-      icon: Icons.upload_file,
+  late final List<_SlideModel> _slides = const [
+    _SlideModel(
+      imagePath: 'assets/image/onboarding/ob1.png',
+      copy: 'Create, share and play quizzes whenever and wherever you want',
     ),
-    OnboardingPage(
-      title: 'Generate MCQs',
-      description: 'AI automatically creates high-quality multiple choice questions from your content',
-      icon: Icons.quiz,
+    _SlideModel(
+      imagePath: 'assets/image/onboarding/ob2.png',
+      copy: 'Find fun and interesting quizzes to boost up your knowledge',
     ),
-    OnboardingPage(
-      title: 'Play & Learn',
-      description: 'Test yourself solo or challenge friends in real-time multiplayer quiz rooms',
-      icon: Icons.people,
+    _SlideModel(
+      imagePath: 'assets/image/onboarding/ob3.png',
+      copy: 'Play and take quiz challenges together with your friends.',
     ),
   ];
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
-            // Skip button
+            // Skip
             Align(
               alignment: Alignment.topRight,
               child: TextButton(
-                onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+                onPressed: () => Navigator.of(context)
+                
+                    .pushReplacementNamed(AppRoutes.login),
                 child: const Text('Skip'),
               ),
             ),
-            
-            // Page view
+
+            // Slides
             Expanded(
               child: PageView.builder(
                 controller: _pageController,
-                onPageChanged: (index) => setState(() => _currentPage = index),
-                itemCount: _pages.length,
+                onPageChanged: (i) => setState(() => _current = i),
+                itemCount: _slides.length,
                 itemBuilder: (context, index) {
-                  final page = _pages[index];
+                  final slide = _slides[index];
                   return Padding(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(
-                          page.icon,
-                          size: 120,
-                          color: theme.colorScheme.primary,
+                        const SizedBox(height: 200),
+                        // Illustration area
+                        SizedBox(
+                          height: 260,
+                          width: double.infinity,
+                          child: Image.asset(
+                            slide.imagePath,
+                            fit: BoxFit.contain,
+                          ),
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
+                        // Copy
                         Text(
-                          page.title,
-                          style: theme.textTheme.headlineMedium,
+                          slide.copy,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: theme.colorScheme.onSurface,
+                            fontWeight: FontWeight.w700,
+                            height: 1.35,
+                          ),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          page.description,
-                          style: theme.textTheme.bodyLarge,
-                          textAlign: TextAlign.center,
+                        const Spacer(),
+                        // Dots
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            _slides.length,
+                            (i) => AnimatedContainer(
+                              duration:
+                                  const Duration(milliseconds: 250),
+                              margin:
+                                  const EdgeInsets.symmetric(horizontal: 4),
+                              height: 6,
+                              width: _current == i ? 22 : 6,
+                              decoration: BoxDecoration(
+                                color: _current == i
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurface
+                                        .withValues(alpha: 0.3),
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                            ),
+                          ),
                         ),
+                        const SizedBox(height: 24),
                       ],
                     ),
                   );
                 },
               ),
             ),
-            
-            // Page indicators
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                _pages.length,
-                (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  height: 8,
-                  width: _currentPage == index ? 24 : 8,
-                  decoration: BoxDecoration(
-                    color: _currentPage == index 
-                        ? theme.colorScheme.primary 
-                        : theme.dividerColor,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
+
+            // CTAs
+            Container(
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surface,
+                border: Border(
+                  top: BorderSide(color: theme.dividerColor, width: 1),
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Navigation buttons
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Row(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (_currentPage > 0)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () => _pageController.previousPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.easeInOut,
-                        ),
-                        child: const Text('Previous'),
-                      ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                  if (_currentPage > 0) const SizedBox(width: 16),
-                  Expanded(
-                    child: PrimaryButton(
-                      label: _currentPage == _pages.length - 1 ? 'Get Started' : 'Next',
-                      onPressed: () {
-                        if (_currentPage == _pages.length - 1) {
-                          Navigator.of(context).pushReplacementNamed(AppRoutes.login);
-                        } else {
-                          _pageController.nextPage(
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
-                        }
-                      },
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.signup),
+                    child: const Text('GET STARTED'),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.12),
+                      foregroundColor: theme.colorScheme.onSurface,
+                      shape: const StadiumBorder(),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
+                    onPressed: () => Navigator.of(context)
+                        .pushReplacementNamed(AppRoutes.login),
+                    child: const Text('I ALREADY HAVE AN ACCOUNT'),
                   ),
                 ],
               ),
@@ -156,15 +168,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 }
 
-class OnboardingPage {
-  final String title;
-  final String description;
-  final IconData icon;
-
-  OnboardingPage({
-    required this.title,
-    required this.description,
-    required this.icon,
-  });
+class _SlideModel {
+  final String imagePath;
+  final String copy;
+  const _SlideModel({required this.imagePath, required this.copy});
 }
 

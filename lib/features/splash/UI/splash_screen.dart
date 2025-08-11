@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/widgets/index.dart';
-import 'package:quizsnap/core/constants/colors.dart';
 import 'package:quizsnap/core/Routes/routes.dart';
-
-//!Refurbish splashscreen, created branch @7:40 pm
-//TODO: rember to refurbish splashscreen and delete branch after 
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 /// Splash screen is the app entry view. It is referenced by `AppRoutes.splash`
 /// and should perform lightweight startup work (branding, preloading, nav).
@@ -23,8 +19,8 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _navigateAfterDelay() async {
-    // Wait for 2 seconds to show the splash
-    await Future.delayed(const Duration(seconds: 200));
+    // Wait briefly to show the splash
+    await Future.delayed(const Duration(seconds: 5));
     
     if (mounted) {
       // TODO: Check if user is already authenticated
@@ -37,35 +33,24 @@ class _SplashScreenState extends State<SplashScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: theme.colorScheme.surface,
       body: Center(
-        child: BrutCard(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('QuizSnap', style: theme.textTheme.headlineMedium),
-              const SizedBox(height: 12),
-              Text(
-                'AI-powered quizzes from your documents',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-              // Loading indicator
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
-                ),
-              ),
-            ],
-          ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/image/quiz.png',
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 20),
+            SpinKitFadingCube(
+              color: theme.colorScheme.primary,
+              size: 50.0,
+            ),
+          ],
         ),
       ),
     );
   }
 }
-
