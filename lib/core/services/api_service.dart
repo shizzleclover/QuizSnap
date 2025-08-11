@@ -15,7 +15,7 @@ class ApiService {
   static String get apiVersion => dotenv.env['API_VERSION'] ?? 'v1';
   
   /// Full API URL with version
-  static String get apiUrl => '$baseUrl/api/$apiVersion';
+  static String get apiUrl => '$baseUrl/api';
 
   /// Initialize the API service with configuration
   static void init() {

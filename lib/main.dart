@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/Routes/app_router.dart';
-import 'core/Routes/routes.dart';
+import 'core/routes/app_router.dart';
+import 'core/routes/routes.dart';
 import 'core/theme/theme.dart';
 import 'core/services/api_service.dart';
 import 'core/widgets/theme_toggle.dart';

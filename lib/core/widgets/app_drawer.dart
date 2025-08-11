@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 
 /// App sidebar drawer with quick access to main features and settings.
 /// Provides additional navigation options beyond the bottom nav bar.
@@ -277,7 +277,7 @@ class _DrawerItem extends StatelessWidget {
         onTap: onTap ?? () {
           Navigator.pop(context); // Close drawer
           if (route.isNotEmpty && !isActive) {
-            Navigator.of(context).pushNamed(route);
+            Navigator.of(context).pushReplacementNamed(route);
           }
         },
         shape: RoundedRectangleBorder(

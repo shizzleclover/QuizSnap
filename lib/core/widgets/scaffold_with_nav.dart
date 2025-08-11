@@ -63,8 +63,8 @@ class ScaffoldWithNav extends StatelessWidget {
         onTap: (route) {
           // Don't navigate if already on the same route
           if (route != currentRoute) {
-            // Use pushNamed instead of pushReplacementNamed for smoother navigation
-            Navigator.of(context).pushNamed(route);
+            // Replace current to prevent stacking duplicates
+            Navigator.of(context).pushReplacementNamed(route);
           }
         },
       ),

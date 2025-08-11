@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 
 /// Profile setup completion placeholder.
 /// Add avatar, bio, and preferences here later.

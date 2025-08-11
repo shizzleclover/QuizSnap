@@ -1,31 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 import 'package:quizsnap/core/widgets/progress_pill.dart';
+import '../provider/auth_provider.dart';
 
 /// Signup screen redesigned with dark layout and progress pill.
-class SignupScreen extends StatefulWidget {
+class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  ConsumerState<SignupScreen> createState() => _SignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _SignupScreenState extends ConsumerState<SignupScreen> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _name = TextEditingController();
-  DateTime? _dob;
+  final TextEditingController _firstName = TextEditingController();
+  final TextEditingController _lastName = TextEditingController();
+  final TextEditingController _email = TextEditingController();
+  final TextEditingController _password = TextEditingController();
   final TextEditingController _phone = TextEditingController();
-  String? _country;
-  int? _age;
   bool _submitting = false;
+  bool _obscure = true;
 
   double get _progress {
     int filled = 0;
-    if (_name.text.trim().isNotEmpty) filled++;
-    if (_dob != null) filled++;
+    if (_firstName.text.trim().isNotEmpty) filled++;
+    if (_lastName.text.trim().isNotEmpty) filled++;
+    if (_email.text.trim().isNotEmpty) filled++;
+    if (_password.text.trim().isNotEmpty) filled++;
     if (_phone.text.trim().isNotEmpty) filled++;
-    if (_country != null && _country!.isNotEmpty) filled++;
-    if (_age != null) filled++;
     return filled / 5;
   }
 
@@ -37,7 +40,7 @@ class _SignupScreenState extends State<SignupScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding),
         ),
         backgroundColor: theme.colorScheme.surface,
         scrolledUnderElevation: 0,
@@ -61,6 +64,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 Text(
                   'Create an account ✏️',
                   style: theme.textTheme.headlineSmall?.copyWith(
+                    color: theme.colorScheme.onSurface,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -73,11 +77,11 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
 
                 const SizedBox(height: 24),
-                _label(context, 'Full Name'),
+                _label(context, 'First Name'),
                 TextFormField(
-                  controller: _name,
+                  controller: _firstName,
                   decoration: const InputDecoration(
-                    hintText: 'Andrew Ainsley',
+                    hintText: 'Andrew',
                     border: UnderlineInputBorder(),
                   ),
                   onChanged: (_) => setState(() {}),
@@ -85,22 +89,52 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
 
                 const SizedBox(height: 16),
-                _label(context, 'Date of Birth'),
-                GestureDetector(
-                  onTap: _pickDate,
-                  child: AbsorbPointer(
-                    child: TextFormField(
-                      decoration: InputDecoration(
-                        hintText: 'MM/DD/YYYY',
-                        suffixIcon: Icon(Icons.calendar_today_outlined, color: theme.colorScheme.primary),
-                        border: const UnderlineInputBorder(),
+                _label(context, 'Last Name'),
+                TextFormField(
+                  controller: _lastName,
+                  decoration: const InputDecoration(
+                    hintText: 'Ainsley',
+                    border: UnderlineInputBorder(),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                ),
+
+                const SizedBox(height: 16),
+                _label(context, 'Email'),
+                TextFormField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    hintText: 'andrew.ainsley@yourdomain.com',
+                    border: UnderlineInputBorder(),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Required'
+                      : null,
+                ),
+
+                const SizedBox(height: 16),
+                _label(context, 'Password'),
+                TextFormField(
+                  controller: _password,
+                  obscureText: _obscure,
+                  decoration: InputDecoration(
+                    hintText: '••••••••••',
+                    border: const UnderlineInputBorder(),
+                    suffixIcon: IconButton(
+                      onPressed: () => setState(() => _obscure = !_obscure),
+                      icon: Icon(
+                        _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
-                      controller: TextEditingController(
-                        text: _dob == null ? '' : _formatDate(_dob!),
-                      ),
-                      validator: (_) => _dob == null ? 'Required' : null,
                     ),
                   ),
+                  onChanged: (_) => setState(() {}),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? 'Required'
+                      : (v.length < 6 ? 'Min 6 characters' : null),
                 ),
 
                 const SizedBox(height: 16),
@@ -116,31 +150,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
 
-                const SizedBox(height: 16),
-                _label(context, 'Country'),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(border: UnderlineInputBorder()),
-                  items: const [
-                    DropdownMenuItem(value: 'United States', child: Text('United States')),
-                    DropdownMenuItem(value: 'Canada', child: Text('Canada')),
-                    DropdownMenuItem(value: 'United Kingdom', child: Text('United Kingdom')),
-                  ],
-                  value: _country,
-                  onChanged: (v) => setState(() => _country = v),
-                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
-                ),
-
-                const SizedBox(height: 16),
-                _label(context, 'Age'),
-                DropdownButtonFormField<int>(
-                  decoration: const InputDecoration(border: UnderlineInputBorder()),
-                  items: List.generate(83, (i) => i + 18)
-                      .map((a) => DropdownMenuItem(value: a, child: Text('$a')))
-                      .toList(),
-                  value: _age,
-                  onChanged: (v) => setState(() => _age = v),
-                  validator: (v) => v == null ? 'Required' : null,
-                ),
+                // Removed Country and Age to match required schema
 
                 const SizedBox(height: 24),
               ],
@@ -175,31 +185,36 @@ class _SignupScreenState extends State<SignupScreen> {
     );
   }
 
-  Future<void> _pickDate() async {
-    final now = DateTime.now();
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: DateTime(now.year - 18, now.month, now.day),
-      firstDate: DateTime(now.year - 100),
-      lastDate: DateTime(now.year - 10),
-    );
-    if (picked != null) setState(() => _dob = picked);
-  }
-
-  String _formatDate(DateTime d) => '${d.month.toString().padLeft(2, '0')}/${d.day.toString().padLeft(2, '0')}/${d.year}';
-
   Future<void> _continue() async {
     if (_formKey.currentState?.validate() != true) return;
     setState(() => _submitting = true);
-    await Future.delayed(const Duration(milliseconds: 500));
+    final first = _firstName.text.trim();
+    final last = _lastName.text.trim();
+    final email = _email.text.trim();
+    final result = await ref.read(authProvider.notifier).signup(
+          email: email,
+          password: _password.text,
+          firstName: first,
+          lastName: last,
+          phoneNumber: _phone.text.trim(),
+        );
     if (!mounted) return;
     setState(() => _submitting = false);
-    Navigator.of(context).pushReplacementNamed(AppRoutes.profileSetup);
+    if (result.isPending) {
+      Navigator.of(context).pushReplacementNamed(AppRoutes.otpConfirmation);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message ?? 'Signup failed')),
+      );
+    }
   }
 
   @override
   void dispose() {
-    _name.dispose();
+    _firstName.dispose();
+    _lastName.dispose();
+    _email.dispose();
+    _password.dispose();
     _phone.dispose();
     super.dispose();
   }

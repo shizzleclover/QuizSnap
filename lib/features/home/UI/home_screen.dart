@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quizsnap/core/widgets/index.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 
 /// Home/Dashboard screen. Quick links to upload and play modes.
 /// Referenced by `AppRoutes.home`.

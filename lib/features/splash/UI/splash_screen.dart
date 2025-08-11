@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 /// Splash screen is the app entry view. It is referenced by `AppRoutes.splash`
@@ -20,7 +20,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateAfterDelay() async {
     // Wait briefly to show the splash
-    await Future.delayed(const Duration(seconds: 5));
+    await Future.delayed(const Duration(seconds: 2));
     
     if (mounted) {
       // TODO: Check if user is already authenticated

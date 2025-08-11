@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quizsnap/core/widgets/index.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 
 /// Upload & Generate screen. Integrate file_picker and Supabase Storage later.
 /// Referenced by `AppRoutes.upload`.

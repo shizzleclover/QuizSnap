@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:quizsnap/core/widgets/index.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 
 /// Multiplayer lobby placeholder. Realtime rooms with Supabase later.
 /// Referenced by `AppRoutes.multiplayerLobby`.

@@ -1,3 +1,7 @@
+// Deprecated duplicate; kept temporarily. Use core/routes/routes.dart instead.
+// This file mirrors constants to avoid breakages during refactor.
+// Remove duplicate legacy definition: rely on core/routes/routes.dart
+
 class AppRoutes {
   static const String splash = "/";
   static const String onboarding = "/onboarding";
@@ -7,6 +11,7 @@ class AppRoutes {
   static const String signup = "/auth/signup";
   static const String otpConfirmation = "/auth/otp";
   static const String forgotPassword = "/auth/forgot-password";
+  static const String resetPassword = "/auth/reset-password";
   
   // Main app routes
   static const String home = "/home";

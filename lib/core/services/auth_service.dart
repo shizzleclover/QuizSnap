@@ -20,14 +20,71 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final token = data['token'] as String;
-        final user = UserModel.fromJson(data['user']);
+        final raw = response.data;
+        if (raw is! Map<String, dynamic>) {
+          return AuthResult.failure('Unexpected response from server');
+        }
 
-        // Store auth token
-        ApiService.setAuthToken(token);
+        // Accept either nested tokens map or top-level token fields
+        final tokensMap = (raw['tokens'] is Map<String, dynamic>)
+            ? raw['tokens'] as Map<String, dynamic>
+            : <String, dynamic>{
+                if (raw['accessToken'] != null) 'accessToken': raw['accessToken'],
+                if (raw['refreshToken'] != null) 'refreshToken': raw['refreshToken'],
+              };
 
-        return AuthResult.success(user: user, token: token);
+        final tokens = AuthTokens.fromJson(tokensMap);
+
+        if (tokens.accessToken != null && tokens.accessToken!.isNotEmpty) {
+          ApiService.setAuthToken(tokens.accessToken!);
+        }
+
+        // Handle user data - either nested or at top level
+        UserModel? user;
+        if (raw['user'] is Map<String, dynamic>) {
+          user = UserModel.fromJson(raw['user'] as Map<String, dynamic>);
+        } else {
+          // Try to build user from top-level fields, with null safety
+          try {
+            final userMap = <String, dynamic>{};
+            if (raw['id'] != null) userMap['id'] = raw['id'];
+            if (raw['email'] != null) userMap['email'] = raw['email'];
+            if (raw['firstName'] != null) userMap['firstName'] = raw['firstName'];
+            if (raw['lastName'] != null) userMap['lastName'] = raw['lastName'];
+            if (raw['phoneNumber'] != null) userMap['phoneNumber'] = raw['phoneNumber'];
+            if (raw['isVerified'] != null) userMap['isVerified'] = raw['isVerified'];
+            if (raw['isProfileComplete'] != null) userMap['isProfileComplete'] = raw['isProfileComplete'];
+            if (raw['created_at'] != null) userMap['created_at'] = raw['created_at'];
+            if (raw['last_login_at'] != null) userMap['last_login_at'] = raw['last_login_at'];
+
+            // Only try to create user if we have minimum required fields
+            if (userMap['id'] != null && userMap['email'] != null) {
+              user = UserModel.fromJson(userMap);
+            }
+          } catch (e) {
+            if (kDebugMode) print('Failed to parse user from top-level fields: $e');
+          }
+        }
+
+        // If we still don't have user data, try to fetch it
+        if (user == null && tokens.accessToken != null) {
+          user = await getCurrentUser();
+        }
+
+        if (user == null) {
+          return AuthResult.failure('Could not load user data after login');
+        }
+
+        final isProfileComplete = (raw['isProfileComplete'] is bool)
+            ? raw['isProfileComplete'] as bool
+            : user.isProfileComplete;
+
+        return AuthResult.success(
+          user: user,
+          token: tokens.accessToken ?? '',
+          tokens: tokens,
+          isProfileComplete: isProfileComplete,
+        );
       } else {
         return AuthResult.failure('Login failed');
       }
@@ -41,7 +98,9 @@ class AuthService {
   static Future<AuthResult> signup({
     required String email,
     required String password,
-    required String name,
+    required String firstName,
+    required String lastName,
+    required String phoneNumber,
   }) async {
     try {
       final response = await ApiService.post(
@@ -49,13 +108,15 @@ class AuthService {
         data: {
           'email': email,
           'password': password,
-          'name': name,
+          'firstName': firstName,
+          'lastName': lastName,
+          'phoneNumber': phoneNumber,
         },
       );
 
       if (response.statusCode == 201) {
         final data = response.data as Map<String, dynamic>;
-        final message = data['message'] as String? ?? 'OTP sent to your email. Please verify to activate your account.';
+        final message = data['message'] as String? ?? 'OTP sent to your email/phone.';
         return AuthResult.pending(message);
       } else {
         return AuthResult.failure('Signup failed');
@@ -81,12 +142,45 @@ class AuthService {
       );
 
       if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final token = data['token'] as String;
-        final user = UserModel.fromJson(data['user']);
+        final raw = response.data;
+        if (raw is! Map<String, dynamic>) {
+          return AuthResult.failure('Unexpected response from server');
+        }
 
-        ApiService.setAuthToken(token);
-        return AuthResult.success(user: user, token: token);
+        final tokensMap = (raw['tokens'] is Map<String, dynamic>)
+            ? raw['tokens'] as Map<String, dynamic>
+            : <String, dynamic>{
+                if (raw['accessToken'] != null) 'accessToken': raw['accessToken'],
+                if (raw['refreshToken'] != null) 'refreshToken': raw['refreshToken'],
+              };
+        final tokens = AuthTokens.fromJson(tokensMap);
+
+        if (tokens.accessToken != null && tokens.accessToken!.isNotEmpty) {
+          ApiService.setAuthToken(tokens.accessToken!);
+        }
+
+        UserModel? user;
+        if (raw['user'] is Map<String, dynamic>) {
+          user = UserModel.fromJson(raw['user'] as Map<String, dynamic>);
+        } else {
+          // Fetch user profile if not included in response
+          user = await getCurrentUser();
+        }
+
+        if (user == null) {
+          return AuthResult.failure('Could not load user after verification');
+        }
+
+        final isProfileComplete = (raw['isProfileComplete'] is bool)
+            ? raw['isProfileComplete'] as bool
+            : user.isProfileComplete;
+
+        return AuthResult.success(
+          user: user,
+          token: tokens.accessToken ?? '',
+          tokens: tokens,
+          isProfileComplete: isProfileComplete,
+        );
       } else {
         return AuthResult.failure('OTP verification failed');
       }
@@ -133,11 +227,19 @@ class AuthService {
 
       if (response.statusCode == 200) {
         final data = response.data as Map<String, dynamic>;
-        final token = data['token'] as String;
+        final tokens = AuthTokens.fromJson(data['tokens'] as Map<String, dynamic>? ?? {});
         final user = UserModel.fromJson(data['user']);
+        final isProfileComplete = data['isProfileComplete'] as bool? ?? true;
 
-        ApiService.setAuthToken(token);
-        return AuthResult.success(user: user, token: token);
+        if (tokens.accessToken != null) {
+          ApiService.setAuthToken(tokens.accessToken!);
+        }
+        return AuthResult.success(
+          user: user,
+          token: tokens.accessToken ?? '',
+          tokens: tokens,
+          isProfileComplete: isProfileComplete,
+        );
       } else {
         return AuthResult.failure('2FA login failed');
       }
@@ -170,15 +272,17 @@ class AuthService {
 
   /// Reset password with token
   static Future<AuthResult> resetPassword({
-    required String token,
+    required String email,
+    required String otp,
     required String newPassword,
   }) async {
     try {
       final response = await ApiService.post(
         ApiEndpoints.resetPassword,
         data: {
-          'token': token,
-          'password': newPassword,
+          'email': email,
+          'otp': otp,
+          'newPassword': newPassword,
         },
       );
 
@@ -272,6 +376,8 @@ class AuthResult {
   final String? message;
   final UserModel? user;
   final String? token;
+  final AuthTokens? tokens;
+  final bool? isProfileComplete;
 
   const AuthResult._({
     required this.isSuccess,
@@ -279,14 +385,23 @@ class AuthResult {
     this.message,
     this.user,
     this.token,
+    this.tokens,
+    this.isProfileComplete,
   });
 
-  factory AuthResult.success({required UserModel user, required String token}) {
+  factory AuthResult.success({
+    required UserModel user,
+    required String token,
+    AuthTokens? tokens,
+    bool? isProfileComplete,
+  }) {
     return AuthResult._(
       isSuccess: true,
       isPending: false,
       user: user,
       token: token,
+      tokens: tokens,
+      isProfileComplete: isProfileComplete,
     );
   }
 
@@ -307,30 +422,62 @@ class AuthResult {
   }
 }
 
+/// Tokens model
+class AuthTokens {
+  final String? accessToken;
+  final String? refreshToken;
+
+  const AuthTokens({this.accessToken, this.refreshToken});
+
+  factory AuthTokens.fromJson(Map<String, dynamic> json) {
+    return AuthTokens(
+      accessToken: json['accessToken'] as String?,
+      refreshToken: json['refreshToken'] as String?,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'accessToken': accessToken,
+        'refreshToken': refreshToken,
+      };
+}
+
 /// User model
 class UserModel {
   final String id;
   final String email;
-  final String name;
+  final String? firstName;
+  final String? lastName;
+  final String? phoneNumber;
   final bool isEmailVerified;
+  final bool isProfileComplete;
   final DateTime createdAt;
   final DateTime? lastLoginAt;
 
   const UserModel({
     required this.id,
     required this.email,
-    required this.name,
+    this.firstName,
+    this.lastName,
+    this.phoneNumber,
     required this.isEmailVerified,
+    required this.isProfileComplete,
     required this.createdAt,
     this.lastLoginAt,
   });
+
+  String get fullName =>
+      [firstName, lastName].where((e) => (e ?? '').isNotEmpty).join(' ').trim();
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
       id: json['id'] as String,
       email: json['email'] as String,
-      name: json['name'] as String,
-      isEmailVerified: json['is_email_verified'] as bool? ?? false,
+      firstName: json['firstName'] as String?,
+      lastName: json['lastName'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
+      isEmailVerified: json['isVerified'] as bool? ?? false,
+      isProfileComplete: json['isProfileComplete'] as bool? ?? true,
       createdAt: DateTime.parse(json['created_at'] as String),
       lastLoginAt: json['last_login_at'] != null 
           ? DateTime.parse(json['last_login_at'] as String)
@@ -342,8 +489,11 @@ class UserModel {
     return {
       'id': id,
       'email': email,
-      'name': name,
-      'is_email_verified': isEmailVerified,
+      'firstName': firstName,
+      'lastName': lastName,
+      'phoneNumber': phoneNumber,
+      'isVerified': isEmailVerified,
+      'isProfileComplete': isProfileComplete,
       'created_at': createdAt.toIso8601String(),
       'last_login_at': lastLoginAt?.toIso8601String(),
     };

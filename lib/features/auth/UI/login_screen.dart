@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quizsnap/core/routes/routes.dart';
+import '../provider/auth_provider.dart';
 
 /// Login screen redesigned to match provided dark layout.
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -25,7 +27,7 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.signup),
+          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.onboarding),
         ),
         backgroundColor: theme.colorScheme.surface,
         scrolledUnderElevation: 0,
@@ -49,7 +51,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // Email label
-                Text('Email', style: theme.textTheme.labelSmall),
+                Text('Email', style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                ),
+                ),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _emailController,
@@ -69,7 +74,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
 
                 // Password label
-                Text('Password', style: theme.textTheme.labelSmall),
+                Text('Password', style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface,
+                )),
                 const SizedBox(height: 6),
                 TextFormField(
                   controller: _passwordController,
@@ -148,11 +155,22 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (_formKey.currentState?.validate() != true) return;
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+    final result = await ref.read(authProvider.notifier).login(
+          email: _emailController.text.trim(),
+          password: _passwordController.text,
+        );
     if (!mounted) return;
     setState(() => _isLoading = false);
-    // Navigate to home for now; replace with real auth integration
-    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+    if (result.isSuccess) {
+      final goTo = (result.isProfileComplete == false)
+          ? AppRoutes.profileSetup
+          : AppRoutes.home;
+      Navigator.of(context).pushReplacementNamed(goTo);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message ?? 'Sign in failed')),
+      );
+    }
   }
 
   @override

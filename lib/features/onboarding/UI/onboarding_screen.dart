@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 // import 'package:quizsnap/core/widgets/index.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:quizsnap/core/routes/routes.dart';
 
 /// Onboarding screen redesigned to match the provided dark walkthrough.
 /// - Top: large illustration area (placeholder containers, clearly labeled)

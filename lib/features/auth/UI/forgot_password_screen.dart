@@ -1,174 +1,114 @@
 import 'package:flutter/material.dart';
-import 'package:quizsnap/core/widgets/index.dart';
-import 'package:quizsnap/core/Routes/routes.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:quizsnap/core/routes/routes.dart';
+import '../provider/auth_provider.dart';
 
-/// Forgot password screen for password reset.
-/// Referenced by `AppRoutes.forgotPassword`.
-class ForgotPasswordScreen extends StatefulWidget {
+/// Forgot password screen redesigned to match dark layout.
+class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  bool _isLoading = false;
-  bool _emailSent = false;
+class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final TextEditingController _email = TextEditingController();
+  bool _loading = false;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
     return Scaffold(
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        title: const Text('Reset Password'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.login),
+        ),
+        backgroundColor: theme.colorScheme.surface,
+        scrolledUnderElevation: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 32),
-            
-            // Icon
-            Icon(
-              _emailSent ? Icons.mark_email_read_outlined : Icons.lock_reset,
-              size: 80,
-              color: theme.colorScheme.primary,
-            ),
-            
-            const SizedBox(height: 32),
-            
-            if (!_emailSent) ...[
-              // Reset form
-              Text(
-                'Forgot Password?',
-                style: theme.textTheme.headlineMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'Enter your email address and we\'ll send you a link to reset your password.',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              
-              const SizedBox(height: 48),
-              
-              BrutCard(
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        'Reset Password',
-                        style: theme.textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 24),
-                      
-                      // Email field
-                      AppTextField(
-                        hint: 'Email',
-                        controller: _emailController,
-                      ),
-                      
-                      const SizedBox(height: 24),
-                      
-                      // Send reset link button
-                      PrimaryButton(
-                        label: _isLoading ? 'Sending...' : 'Send Reset Link',
-                        onPressed: _isLoading ? () {} : _handleSendResetLink,
-                      ),
-                      
-                      const SizedBox(height: 16),
-                      
-                      // Back to login
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('Remember your password? '),
-                          TextButton(
-                            onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.login),
-                            child: const Text('Sign In'),
-                          ),
-                        ],
-                      ),
-                    ],
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 8),
+                Text('Forgot Password 🔑',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w800,
+                    )),
+                const SizedBox(height: 8),
+                Text(
+                  'Enter your email address to get an OTP code to reset your password.',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
                 ),
-              ),
-            ] else ...[
-              // Email sent confirmation
-              Text(
-                'Check your email',
-                style: theme.textTheme.headlineMedium,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'We\'ve sent a password reset link to ${_emailController.text}',
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-              
-              const SizedBox(height: 48),
-              
-              BrutCard(
-                child: Column(
-                  children: [
-                    const Text(
-                      'Next steps:',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('1. Check your email inbox'),
-                    const SizedBox(height: 8),
-                    const Text('2. Click the reset link'),
-                    const SizedBox(height: 8),
-                    const Text('3. Create a new password'),
-                    const SizedBox(height: 24),
-                    
-                    OutlinedButton(
-                      onPressed: _handleSendResetLink,
-                      child: const Text('Resend Email'),
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pushReplacementNamed(AppRoutes.login),
-                      child: const Text('Back to Login'),
-                    ),
-                  ],
+                const SizedBox(height: 24),
+                Text('Email', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface)),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(
+                    hintText: 'andrew.ainsley@yourdomain.com',
+                    border: UnderlineInputBorder(),
+                  ),
+                  validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                 ),
-              ),
-            ],
-          ],
+                const Spacer(),
+              ],
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          border: Border(top: BorderSide(color: theme.dividerColor, width: 1)),
+        ),
+        child: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: theme.colorScheme.primary,
+            foregroundColor: theme.colorScheme.onPrimary,
+            shape: const StadiumBorder(),
+            padding: const EdgeInsets.symmetric(vertical: 16),
+          ),
+          onPressed: _loading ? null : _continue,
+          child: const Text('Continue'),
         ),
       ),
     );
   }
 
-  void _handleSendResetLink() async {
-    if (!_emailSent && (_formKey.currentState?.validate() != true)) return;
-    
-    setState(() => _isLoading = true);
-    
-    // TODO: Implement password reset with Supabase
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network call
-    
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-        _emailSent = true;
-      });
+  Future<void> _continue() async {
+    if (_formKey.currentState?.validate() != true) return;
+    setState(() => _loading = true);
+    final result = await ref
+        .read(authProvider.notifier)
+        .forgotPassword(email: _email.text.trim());
+    if (!mounted) return;
+    setState(() => _loading = false);
+    if (result.isPending) {
+      // Take user to reset page where they can enter OTP + new password
+      Navigator.of(context).pushReplacementNamed(AppRoutes.resetPassword);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message ?? 'Failed to send reset OTP')),
+      );
     }
   }
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _email.dispose();
     super.dispose();
   }
 }
