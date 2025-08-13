@@ -28,6 +28,11 @@ class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     Widget screen;
     switch (settings.name) {
+      // Aliases from backend redirectTo values
+      case '/profile-setup':
+        screen = const ProfileSetupScreen();
+        break;
+      // '/home' is already handled by AppRoutes.home
       case AppRoutes.splash:
         screen = const SplashScreen();
         break;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:quizsnap/core/routes/routes.dart';
+import '../../../core/services/auth_service.dart';
 import '../provider/auth_provider.dart';
 
 /// Login screen redesigned to match provided dark layout.
@@ -162,9 +163,22 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
     if (result.isSuccess) {
-      final goTo = (result.isProfileComplete == false)
-          ? AppRoutes.profileSetup
-          : AppRoutes.home;
+      // Let auth provider handle redirection based on auth status
+      final authState = ref.read(authProvider);
+      String goTo = AppRoutes.home; // Default
+      
+      if (authState.authStatus == AuthMeStatus.incomplete) {
+        // Use redirectTo from auth/me response, fallback to profile setup
+        goTo = authState.redirectTo ?? AppRoutes.profileSetup;
+      } else if (authState.authStatus == AuthMeStatus.complete) {
+        goTo = AppRoutes.home;
+      } else {
+        // Fallback to checking isProfileComplete for backward compatibility
+        goTo = (result.isProfileComplete == false)
+            ? AppRoutes.profileSetup
+            : AppRoutes.home;
+      }
+      
       Navigator.of(context).pushReplacementNamed(goTo);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

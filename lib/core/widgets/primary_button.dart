@@ -25,22 +25,51 @@ import 'package:flutter/material.dart';
 /// - Accessibility support built-in
 class PrimaryButton extends StatelessWidget {
   /// Text to display on the button
-  final String label;
+  final String? label;
+  
+  /// Alternative text parameter
+  final String? text;
+  
+  /// Icon to display on the button
+  final IconData? icon;
   
   /// Callback when button is pressed. Set to null to disable button.
   final VoidCallback? onPressed;
+  
+  /// Whether to show loading state
+  final bool isLoading;
 
   const PrimaryButton({
     super.key,
-    required this.label,
+    this.label,
+    this.text,
+    this.icon,
     required this.onPressed,
+    this.isLoading = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final buttonText = text ?? label ?? '';
+    
     return ElevatedButton(
-      onPressed: onPressed,
-      child: Text(label),
+      onPressed: isLoading ? null : onPressed,
+      child: isLoading
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (icon != null) ...[
+                  Icon(icon),
+                  const SizedBox(width: 8),
+                ],
+                Text(buttonText),
+              ],
+            ),
     );
   }
 }

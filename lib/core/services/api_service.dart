@@ -14,8 +14,8 @@ class ApiService {
   /// API version
   static String get apiVersion => dotenv.env['API_VERSION'] ?? 'v1';
   
-  /// Full API URL with version
-  static String get apiUrl => '$baseUrl/api';
+  /// Full API URL (expects API_BASE_URL to already point to your API root)
+  static String get apiUrl => baseUrl;
 
   /// Initialize the API service with configuration
   static void init() {
@@ -45,6 +45,13 @@ class ApiService {
         // Add auth token if available
         if (_authToken != null) {
           options.headers['Authorization'] = 'Bearer $_authToken';
+          if (kDebugMode) {
+            print('API Service - Token added to request: ${_authToken!.length > 20 ? '${_authToken!.substring(0, 20)}...' : _authToken!}');
+          }
+        } else {
+          if (kDebugMode) {
+            print('API Service - NO TOKEN AVAILABLE for ${options.method} ${options.path}');
+          }
         }
         
         if (kDebugMode) {
@@ -75,11 +82,20 @@ class ApiService {
 
   /// Set authentication token
   static void setAuthToken(String token) {
+    if (kDebugMode) {
+      print('API Service - Setting auth token: ${token.length > 20 ? '${token.substring(0, 20)}...' : token}');
+    }
     _authToken = token;
+    if (kDebugMode) {
+      print('API Service - Token set successfully: ${_authToken != null}');
+    }
   }
 
   /// Clear authentication token
   static void clearAuthToken() {
+    if (kDebugMode) {
+      print('API Service - Clearing auth token');
+    }
     _authToken = null;
   }
 
@@ -88,6 +104,20 @@ class ApiService {
 
   /// Check if user is authenticated
   static bool get isAuthenticated => _authToken != null;
+
+  /// Debug method to check current token state
+  static void debugTokenState([String? context]) {
+    if (kDebugMode) {
+      final ctx = context != null ? '[$context] ' : '';
+      print('${ctx}API Service Token State:');
+      print('  - Token present: ${_authToken != null}');
+      if (_authToken != null) {
+        print('  - Token length: ${_authToken!.length}');
+        print('  - Token preview: ${_authToken!.length > 20 ? '${_authToken!.substring(0, 20)}...' : _authToken!}');
+      }
+      print('  - isAuthenticated: $isAuthenticated');
+    }
+  }
 
   /// GET request
   static Future<Response<T>> get<T>(

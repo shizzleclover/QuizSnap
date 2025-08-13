@@ -28,7 +28,10 @@ import 'package:flutter/material.dart';
 /// - Accessibility labels
 class AppTextField extends StatelessWidget {
   /// Placeholder text to show when field is empty
-  final String hint;
+  final String? hint;
+  
+  /// Label text to show as floating label
+  final String? label;
   
   /// Text editing controller for managing field value
   final TextEditingController? controller;
@@ -44,15 +47,32 @@ class AppTextField extends StatelessWidget {
   
   /// Whether the field is enabled for input
   final bool enabled;
+  
+  /// Callback when text changes
+  final void Function(String)? onChanged;
+  
+  /// Widget to show at the end of the field
+  final Widget? suffix;
+  
+  /// Maximum number of lines
+  final int? maxLines;
+  
+  /// Maximum character length
+  final int? maxLength;
 
   const AppTextField({
     super.key,
-    required this.hint,
+    this.hint,
+    this.label,
     this.controller,
     this.obscureText = false,
     this.keyboardType = TextInputType.text,
     this.validator,
     this.enabled = true,
+    this.onChanged,
+    this.suffix,
+    this.maxLines,
+    this.maxLength,
   });
 
   @override
@@ -63,8 +83,13 @@ class AppTextField extends StatelessWidget {
       keyboardType: keyboardType,
       validator: validator,
       enabled: enabled,
+      onChanged: onChanged,
+      maxLines: maxLines,
+      maxLength: maxLength,
       decoration: InputDecoration(
         hintText: hint,
+        labelText: label,
+        suffixIcon: suffix,
       ),
     );
   }

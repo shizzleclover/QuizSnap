@@ -12,6 +12,7 @@ class ApiEndpoints {
   static const String getCurrentUser = '/auth/me';
   static const String updateProfile = '/auth/me';
   static const String deleteAccount = '/auth/me';
+  static const String profileSetup = '/profile/setup';
 
   // Document Upload & Management
   static const String uploadDocument = '/documents/upload';
