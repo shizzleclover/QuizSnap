@@ -23,35 +23,128 @@ class ProfileService {
     bool? twoFactorEnabled,
   }) async {
     try {
-      FormData formData = FormData.fromMap({
-        'firstName': firstName,
-        'lastName': lastName,
-        'username': username,
-        'displayName': displayName,
-        if (bio != null) 'bio': bio,
-        if (profilePicturePath != null)
-          'profilePicture': await MultipartFile.fromFile(profilePicturePath),
-        if (phoneNumber != null) 'phoneNumber': phoneNumber,
-        if (dateOfBirth != null) 'dateOfBirth': dateOfBirth,
-        if (gender != null) 'gender': gender,
-        // Encode nested objects as JSON strings for multipart compatibility
-        if (address != null) 'address': jsonEncode(address),
-        if (privacySettings != null) 'privacySettings': jsonEncode(privacySettings),
-        if (twoFactorEnabled != null) 'twoFactorEnabled': twoFactorEnabled,
-      });
+      // Normalize inputs
+      String _normalizeUsername(String u) => u.trim().toLowerCase();
+      String? _normalizeGender(String? g) {
+        if (g == null) return null;
+        final v = g.trim().toLowerCase().replaceAll(' ', '_');
+        return v;
+      }
 
-      final response = await ApiService.post(
-        ApiEndpoints.profileSetup,
-        data: formData,
-      );
+      bool _isNonEmpty(String? v) => v != null && v.trim().isNotEmpty;
 
-      if (response.statusCode == 200) {
-        final data = response.data as Map<String, dynamic>;
-        final userData = data['data']['user'] as Map<String, dynamic>;
-        final user = ProfileUser.fromJson(userData);
-        return ProfileResult.success(user: user, message: data['message'] as String?);
+      if (profilePicturePath != null && profilePicturePath.isNotEmpty) {
+        // multipart/form-data: objects and booleans as strings
+        final Map<String, dynamic> fields = {};
+        void addField(String key, String? value) {
+          if (_isNonEmpty(value)) fields[key] = value!.trim();
+        }
+
+        addField('firstName', firstName);
+        addField('lastName', lastName);
+        addField('username', _normalizeUsername(username));
+        addField('displayName', displayName);
+        addField('bio', bio);
+        addField('phoneNumber', phoneNumber);
+        addField('dateOfBirth', dateOfBirth);
+        addField('gender', _normalizeGender(gender));
+
+        // Address as dotted keys if provided
+        if (address != null && address.isNotEmpty) {
+          void addAddr(String k) {
+            final v = address[k];
+            if (v is String && v.trim().isNotEmpty) {
+              fields['address.$k'] = v.trim();
+            }
+          }
+          addAddr('line1');
+          addAddr('line2');
+          addAddr('city');
+          addAddr('state');
+          addAddr('country');
+          addAddr('postalCode');
+        }
+
+        // privacySettings as JSON string
+        if (privacySettings != null && privacySettings.isNotEmpty) {
+          fields['privacySettings'] = jsonEncode(privacySettings);
+        }
+
+        // twoFactorEnabled as string "true"/"false"
+        if (twoFactorEnabled != null) {
+          fields['twoFactorEnabled'] = twoFactorEnabled.toString();
+        }
+
+        // Attach file
+        fields['profilePicture'] = await MultipartFile.fromFile(profilePicturePath);
+
+        final formData = FormData.fromMap(fields);
+
+        final response = await ApiService.post(
+          ApiEndpoints.profileSetup,
+          data: formData,
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data as Map<String, dynamic>;
+          final userData = (data['data'] is Map<String, dynamic>)
+              ? (data['data']['user'] as Map<String, dynamic>)
+              : (data['user'] as Map<String, dynamic>);
+          final user = ProfileUser.fromJson(userData);
+          return ProfileResult.success(user: user, message: data['message'] as String?);
+        } else {
+          return ProfileResult.failure('Profile setup failed');
+        }
       } else {
-        return ProfileResult.failure('Profile setup failed');
+        // application/json: nested objects allowed; booleans as proper booleans
+        final Map<String, dynamic> body = {};
+        void addField(String key, String? value) {
+          if (_isNonEmpty(value)) body[key] = value!.trim();
+        }
+
+        addField('firstName', firstName);
+        addField('lastName', lastName);
+        addField('username', _normalizeUsername(username));
+        addField('displayName', displayName);
+        addField('bio', bio);
+        addField('phoneNumber', phoneNumber);
+        addField('dateOfBirth', dateOfBirth);
+        addField('gender', _normalizeGender(gender));
+
+        if (address != null) {
+          // Remove empties from address
+          final filtered = <String, dynamic>{};
+          address.forEach((k, v) {
+            if (v is String && v.trim().isNotEmpty) filtered[k] = v.trim();
+          });
+          if (filtered.isNotEmpty) body['address'] = filtered;
+        }
+
+        if (privacySettings != null && privacySettings.isNotEmpty) {
+          body['privacySettings'] = privacySettings;
+        }
+
+        if (twoFactorEnabled != null) {
+          body['twoFactorEnabled'] = twoFactorEnabled;
+        }
+
+        final response = await ApiService.post(
+          ApiEndpoints.profileSetup,
+          data: body,
+        );
+
+        if (response.statusCode == 200) {
+          final data = response.data as Map<String, dynamic>;
+          final userData = (data['data'] is Map<String, dynamic>)
+              ? (data['data']['user'] as Map<String, dynamic>)
+              : (data['user'] as Map<String, dynamic>);
+          final user = ProfileUser.fromJson(userData);
+          return ProfileResult.success(user: user, message: data['message'] as String?);
+        } else if (response.statusCode == 400) {
+          return ProfileResult.failure('Username is already taken or validation error');
+        } else {
+          return ProfileResult.failure('Profile setup failed');
+        }
       }
     } catch (e) {
       if (kDebugMode) print('Profile setup error: $e');
